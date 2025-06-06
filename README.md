@@ -1,77 +1,82 @@
-# SpecFix
+# Automated Repair of Ambiguous Natural Language Requirements
 
-This repository provides a Python-based tool for **Specification Fix**(SpecFix) using language model APIs (
-e.g., OpenAI or Qwen). It contains an end-to-end workflow for:
+SpecFix is a tool for automatically repairing ambiguous natural language requirements to improve code generation by large language models (LLMs).
 
-1. Generating multiple candidate programs for a given requirement.
-2. Testing these programs in parallel to identify clusters of functionally equivalent implementations.
-3. Automatically refining requirements based on clarifications and test outputs to guide subsequent code generation, in
-   a loop until convergence or until a maximum number of iterations is reached.
-4. Tracking and reporting on accuracy metrics (e.g., success rate, iteration count).
+## Key Features
+**Analyzing the distribution of programs** induced by a given requirement.
 
-## Table of Contents
+**Measuring and reducing semantic entropy**, which captures how many distinct interpretations (clusters of semantically equivalent programs) the requirement allows.
 
-- [Dataset](#dataset)
-- [Installation](#installation)
-- [Usage](#usage)
-    - [Command-Line Arguments](#command-line-arguments)
-- [Prompt](#prompt)
-- [Contributing](#contributing)
+**Ensuring example consistency**, a novel metric that quantifies how well sampled programs satisfy the clarifying examples attached to the requirement.
 
-## Dataset
+**Performing contrastive specification inference**, which takes the repaired (or clustered) programs and iteratively refines the original text so that the most desirable interpretations are prioritized.
 
-We use three datasets in our experiments: Humaneval+, MBPP+, and TACO_lite. Humaneval+ and MBPP+ can be accessed from
-third library evalplus. TACO_lite is a dataset that is automatically removed examples or explanations, introducing
-ambiguity.
-You can find TACO_lite in `dataset` folder.
-
-## Installation
-
-1. Clone the repository (or copy the script) to your local environment:
-   ```bash
-   git clone https://github.com/msv-lab/SpecFix.git
-   cd SpecFix
-   ```
-
-2. Install required dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-   Make sure you have the following libraries installed (they might already be in the `requirements.txt`):
-   - `openai`
-   - `jsonlines`
-   - `evalplus`
-
-## Usage
-
-After installing the requirements, run the main script with the appropriate command-line arguments:
-
-```bash
-python main.py --dataset <dataset_name> \
-               --dataset_path <path_to_data> \
-               --api-key <YOUR_OPENAI_API_KEY> \
-               --model <openai_or_qwen_model_name> \
-               --temperature <model_temperature> \
-               --num-programs <N> \
-               --max-iterations <max_iterations>
+## Structure
+The repository is structured as follows:
+```
+specfix/
+    ├── main.py                 # Main script to run the tool
+    ├── cluster.py              # Clustering functions for program clustering
+    ├── evaluator.py            # Evaluation functions for repairing and measuring 
+    ├── model.py                # Model functions for interacting with LLMs
+    ├── prompt.py               # Prompts for each task
+    ├── solution_transformer.py # Functions for transforming generated programs
+    ├── testers.py              # Test functions for detecting ambiguity
+    ├── utils.py                # Utility functions for various tasks
+    ├── datasets/               # Dataset (HumanEval+ and MBPP+)
+    ├── Results/                # Directory to save results
+    ├── experiment_results/     # Directory for our experiment results
+    ├── requirements.txt        # Python package dependencies
+    └── README.md               # Documentation for the tool
 ```
 
-### Command-Line Arguments
+## Installation
+1. To install SpecFix, create a virtual environment and install the required packages:
 
-- **`--dataset`** (str): Name of the dataset to load (e.g., `taco`, `humaneval`, `mbpp`).
-- **`--dataset_path`** (str): Path to the dataset JSONL or data source file.
-- **`--api-key`** (str): Your OpenAI (or Qwen) API key.
-- **`--model`** (str): The model name to use (e.g., `gpt-3.5-turbo`, `qwen2.5-coder-7b-instruct`, etc.).
-- **`--temperature`** (float): The temperature for the language model (creativity knob).
-- **`--num-programs`** (int): How many candidate programs to generate per iteration.
-- **`--max-iterations`** (int): The maximum number of refinement iterations.
+```bash
+python -m venv specfix-venv
+source specfix-venv/bin/activate  # On Windows use `specfix-venv\Scripts\activate`
+pip install -r requirements.txt
+```
 
-### Prompt
+2. Set up the LLM API keys in the environment variables:
+```bash
+export LLM_API_KEY="your_llm_api_key"
+```
 
-All prompts used in the experiments are stored in the `prompts.py`, including prompt for code generation, test
-generation, and requirement refinement, etc.
+## Usage
+1. Run the tool:
+```bash
+cd specfix
+python main.py -d <dataset_name> -p <path_to_dataset> -c <clustering_sample_size> -e <evaluation_sample_size> -k <pass@k_value> -m <model_name> -t <temperature>
+```
 
-## Contributing
+2. The results will be saved in the `Results` directory. The directory structure will be as follows:
+```
+Results/model_name/dataset_name/
+    ├── humaneval-{timestamp}.jsonl
+    └── mbpp-{timestamp}.jsonl
+```
+The jsonl files contain the following fields:
+- `original_requirement`: The original requirement text.
+- `repaired_requirement`: The repaired requirement text.
+- `original_clusters`: The clusters of programs generated from the original requirement.
+- `repaired_clusters`: The clusters of programs generated from the repaired requirement.
+- `results`: 
+  - `original_passk`: The pass@k value for the original requirement.
+  - `original_avg_pass_rate`: The average pass rate for the original requirement.
+  - `original_nzpassk`: The number of non-zero pass@k values for the original requirement.
+  - `original_majority_passk`: The majority vote pass@k value for the original requirement.
+  - `original_entropy`: The semantic entropy of the original requirement.
+  - `repaired_passk`: The pass@k value for the repaired requirement.
+  - `repaired_avg_pass_rate`: The average pass rate for the repaired requirement.
+  - `repaired_nzpassk`: The number of non-zero pass@k values for the repaired requirement.
+  - `repaired_majority_passk`: The majority vote pass@k value for the repaired requirement.
+  - `repaired_entropy`: The semantic entropy of the repaired requirement.
 
-Contributions, bug reports, and feature requests are welcome! Please open issues or submit pull requests.
+## Example
+To run the tool on the `HumanEval+` dataset with 20 samples for clustering and Pass@1 with 10 samples for evaluation, using the `gpt-4o` model with a temperature of 0.7, you can use the following command:
+
+```bash
+python main.py -d humaneval -p path/to/humaneval+.jsonl -c 20 -e 10 -k 1 -m gpt-4o -t 0.7
+```
