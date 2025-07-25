@@ -14,9 +14,13 @@ import os
 import subprocess
 import jsonlines
 import json
+import sys
+import sklearn
+
 
 MBPP_DATA = 'mbpp.jsonl'
 MBPP_SE_CLUSTERS = 'mbpp_se_clusters.json'
+MBPP_TEST_CLUSTERS = 'mbpp_test_clusters.json'
 
 EXECUTION_TIMEOUT_SECONDS = 30
 
@@ -92,7 +96,7 @@ def partition(programs):
     return labels
 
 
-def main():
+def compute_se_clusters():
     if os.path.exists(MBPP_SE_CLUSTERS):
         with open(MBPP_SE_CLUSTERS, 'r', encoding='utf-8') as f:
             results = json.load(f)
@@ -114,5 +118,49 @@ def main():
                 json.dump(results, f, indent=2)
 
 
+def extract_test_clusters():
+    def get_cluster_indices(programs, clusters):
+        prog2cluster = {}
+        for idx, cluster in enumerate(clusters):
+            for prog in cluster['programs_str']:
+                prog2cluster[prog] = idx
+                
+        return [prog2cluster[prog] for prog in programs]
+
+    output = {}
+
+    with open(MBPP_DATA, 'r') as fin:
+        for line in fin:
+            item = json.loads(line)
+            programs = item['programs']
+            clusters = item['clusters']
+            indices = get_cluster_indices(programs, clusters)
+            output[item['task_id']] = indices
+
+    with open(MBPP_TEST_CLUSTERS, 'w') as fout:
+        json.dump(output, fout, indent=2)
+
+
+def avg_rand_score():
+    with open(MBPP_TEST_CLUSTERS, 'r') as ft:
+        test_labels = json.load(ft) 
+        with open(MBPP_SE_CLUSTERS, 'r') as fs:
+            se_labels = json.load(fs)
+
+            scores = []
+   
+            for t in test_labels.keys():
+                ari = sklearn.metrics.adjusted_rand_score(test_labels[t], se_labels[t])
+                scores.append(ari)
+
+            return sum(scores) / len(scores)
+
+
 if __name__ == "__main__":
-    main()
+    match sys.argv[1]:
+        case "se":
+            compute_se_clusters()
+        case "test":
+            extract_test_clusters()
+        case "diff":
+            print(avg_rand_score())
