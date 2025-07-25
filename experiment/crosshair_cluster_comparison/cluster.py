@@ -150,7 +150,7 @@ def avg_rand_score():
             scores = []
    
             for t in test_labels.keys():
-                ari = sklearn.metrics.adjusted_rand_score(test_labels[t], se_labels[t])
+                ari = sklearn.metrics.rand_score(test_labels[t], se_labels[t])
                 scores.append(ari)
 
             return sum(scores) / len(scores)
