@@ -1,15 +1,6 @@
-# Automated Repair of Ambiguous Natural Language Requirements
+# Automated Repair of Ambiguous Problem Descriptions for LLM-Based Code Generation
 
-SpecFix is a tool for automatically repairing ambiguous natural language requirements to improve code generation by large language models (LLMs).
-
-## Key Features
-**Analyzing the distribution of programs** induced by a given requirement.
-
-**Measuring and reducing semantic entropy**, which captures how many distinct interpretations (clusters of semantically equivalent programs) the requirement allows.
-
-**Ensuring example consistency**, a novel metric that quantifies how well sampled programs satisfy the clarifying examples attached to the requirement.
-
-**Performing contrastive specification inference**, which takes the repaired (or clustered) programs and iteratively refines the original text so that the most desirable interpretations are prioritized.
+Prompting is the new programming. Prompts suffer from ambiguity of natural language, which often results in the generation of incorrect programs, therefore we need to approaches that would help users detect and eliminate ambiguity. SpecFix is the first approach that automatically repairs ambiguity in programming problem descriptions. Specifically, it minimally modefies the prompts to reduce code generation uncertainty and better aligning natural language with input-output examples. To do it precisely, SpecFix decomposes this task into two simpler steps: (1) analyzing and repairing the LLM's interpretation of the description - captured by the distribution of programs it induces - using traditional testing and program repair, and (2) refining the description based on distribution changes via a method we call contrastive specification inference. An extensive evaluation with four state-of-the-art LLMs (GPT-4o, GPT-4o-mini, DeepSeek-V3, and Qwen2.5-Coder-32B-Instruct) on three popular code generation benchmarks (HumanEval+, MBPP+ and LiveCodeBench) shows that SpecFix significantly increases Pass@1 of the modified requirements, and its repairs generalize across models.
 
 ## Structure
 The repository is structured as follows:
