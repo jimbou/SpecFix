@@ -1,7 +1,0 @@
-Total problems: 2
-SpecFix detected: 0 (0.00%)
-SpecFix improved: 0 (0.00%)
-Prompt tokens: 0
-Completion tokens: 0
-Total tokens: 0
-API time (s): 0.000
