@@ -4,3 +4,5 @@
 .run
 .config
 __pycache__
+specfix-venv/
+
