@@ -1,0 +1,7 @@
+Total problems: 100
+SpecFix detected: 12 (12.00%)
+SpecFix improved: 6 (6.00%)
+Prompt tokens: 94207
+Completion tokens: 402743
+Total tokens: 496950
+API time (s): 2234.616

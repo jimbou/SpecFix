@@ -44,8 +44,20 @@ export LLM_API_KEY="your_llm_api_key"
 1. Run the tool:
 ```bash
 cd specfix
-python main.py -d <dataset_name> -p <path_to_dataset> -c <clustering_sample_size> -e <evaluation_sample_size> -k <pass@k_value> -m <model_name> -t <temperature>
+python main.py \
+  -d <dataset_name> \
+  -p <path_to_dataset> \
+  -c <clustering_sample_size> \
+  -e <evaluation_sample_size> \
+  -k <pass@k_value> \
+  -m <model_name> \
+  -t <temperature> \
+  [--cache-dir <mnimi_cache_path>] \
+  [--cache-replication]
 ```
+
+* `--cache-dir` (optional) enables Mnimi's persistent cache by pointing to a directory where responses should be stored.
+* `--cache-replication` (optional) toggles Mnimi's replication mode so runs fail fast on cache miss instead of calling the live model.
 
 2. The results will be saved in the `Results` directory. The directory structure will be as follows:
 ```
@@ -74,5 +86,16 @@ The jsonl files contain the following fields:
 To run the tool on the `HumanEval+` dataset with 20 samples for clustering and Pass@1 with 10 samples for evaluation, using the `gpt-4o` model with a temperature of 0.7, you can use the following command:
 
 ```bash
-python main.py -d humaneval -p path/to/humaneval+.jsonl -c 20 -e 10 -k 1 -m gpt-4o -t 0.7
+python main.py -d humaneval -p path/to/humaneval+.jsonl -c 20 -e 10 -k 1 -m gpt-4o -t 0.7 \
+  --cache-dir ~/.mnimi/specfix
 ```
+
+To rerun using only cached completions, add `--cache-replication` to the command above.
+
+
+## Mnimi cache integration
+
+SpecFix pairs naturally with [Mnimi](cached_llm.py), a lightweight LLM caching layer that keeps retries inexpensive while
+preserving deterministic debugging and entropy calculation trhough independence when needed. For a step-by-step walkthrough showing how to wire Mnimi into the SpecFix pipeline, see
+[`docs/mnimi_specfix_use_case.md`](mnimi_integration.md).
+
