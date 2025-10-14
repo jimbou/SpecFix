@@ -1,0 +1,8 @@
+Total problems: 100
+SpecFix detected: 17 (17.00%)
+SpecFix improved: 7 (7.00%)
+Prompt tokens: 109110
+Completion tokens: 374736
+Total tokens: 483846
+API time (s): 2012.108
+Total cost: $1.286443
