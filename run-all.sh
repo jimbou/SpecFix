@@ -1,6 +1,6 @@
 #!/bin/bash
 # run_specfix_suite.sh
-# Runs SpecFix multiple times with/without Mnimi cache and varying c/e.
+# Runs SpecFix multiple times with/without Mnimi cache and varying c/e. and collects the resulting tokens and times
 # Usage: bash run_specfix_suite.sh
 
 set -euo pipefail
