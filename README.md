@@ -97,5 +97,5 @@ To rerun using only cached completions, add `--cache-replication` to the command
 
 SpecFix pairs naturally with [Mnimi](cached_llm.py), a lightweight LLM caching layer that keeps retries inexpensive while
 preserving deterministic debugging and entropy calculation trhough independence when needed. For a step-by-step walkthrough showing how to wire Mnimi into the SpecFix pipeline, see
-[`docs/mnimi_specfix_use_case.md`](mnimi_integration.md).
+[`mnimi_integration.md`](mnimi_integration.md).
 
