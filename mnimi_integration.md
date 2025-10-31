@@ -38,3 +38,6 @@ These layers compose naturally as `Persistent → Independent → Repeatable`, g
 
 
 Following this checklist ensures SpecFix remains statistically sound—fresh generations appear where the algorithm depends on them—while you capture the reproducibility and cost savings that Mnimi provides.
+
+## Experiment Results
+The bash script run-all.sh is used for the mnimi experiments within specfix and the results can be found in Results/gpt-4.1-mini/logs_suite
