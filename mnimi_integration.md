@@ -12,7 +12,7 @@ SpecFix issues dozens of completions while it diagnoses ambiguous requirements, 
 
 ## How SpecFix currently calls the LLM
 
-The evaluator constructs a `Model` instance in its initializer and forwards every completion request through `get_response` or `get_response_sample` during detection, sampling, and repair.【F:evaluator.py†L12-L177】 The `Model` wrapper itself is a thin OpenAI-compatible client that returns either single completions or batched samples depending on the call site.【F:model.py†L5-L94】 Because this abstraction already owns the API key and batching logic, swapping it for a Mnimi-backed equivalent gives you control over every LLM touchpoint in the pipeline.
+The evaluator constructs a `Model` instance in its initializer and forwards every completion request through `get_response` or `get_response_sample` during detection, sampling, and repair.】 The `Model` wrapper itself is a thin OpenAI-compatible client that returns either single completions or batched samples depending on the call site. Because this abstraction already owns the API key and batching logic, swapping it for a Mnimi-backed equivalent gives you control over every LLM touchpoint in the pipeline.
 
 ## Integrating Mnimi step by step
 
@@ -25,16 +25,16 @@ The evaluator constructs a `Model` instance in its initializer and forwards ever
 
 Once Mnimi powers the evaluator, you can decide where independence versus repeatability matters most:
 
-1. **Detection phase** — `specfix_detect` first launches `generate_tests`, retrying up to ten times to extract a satisfactory suite.【F:evaluator.py†L161-L177】【F:evaluator.py†L81-L103】 SpecFix now calls `get_response(..., cache_mode="independent")`, which advances the Mnimi iterator on every retry while still persisting the eventually accepted tests for future runs.【F:evaluator.py†L81-L105】【F:model.py†L55-L148】
-2. **Initial program sampling** — After tests are locked in, `generate_programs` issues either batched samples or multiple parallel requests, ultimately funnelling through `get_response_sample` and `generate_program` for fallbacks.【F:evaluator.py†L32-L80】【F:evaluator.py†L135-L159】 Both paths request `cache_mode="independent"` so new programs appear whenever the evaluator widens the search space, yet the persistent layer still replays the same batches once the cache is warm.【F:evaluator.py†L32-L80】【F:model.py†L101-L140】
-3. **Repair loop** — `specfix_repair` iterates up to three times, alternating between program repair, contrastive inference, and a fresh sampling pass before evaluating consistency gains.【F:evaluator.py†L179-L222】 The repair routines choose `cache_mode="repeatable_attempt"`, which nests a repeatable cache on top of the shared independent stream so every attempt receives a fresh completion while repeated reads within an attempt stay deterministic.【F:evaluator.py†L179-L222】【F:model.py†L55-L148】
+1. **Detection phase** — `specfix_detect` first launches `generate_tests`, retrying up to ten times to extract a satisfactory suite. SpecFix now calls `get_response(..., cache_mode="independent")`, which advances the Mnimi iterator on every retry while still persisting the eventually accepted tests for future runs.
+2. **Initial program sampling** — After tests are locked in, `generate_programs` issues either batched samples or multiple parallel requests, ultimately funnelling through `get_response_sample` and `generate_program` for fallbacks. Both paths request `cache_mode="independent"` so new programs appear whenever the evaluator widens the search space, yet the persistent layer still replays the same batches once the cache is warm.
+3. **Repair loop** — `specfix_repair` iterates up to three times, alternating between program repair, contrastive inference, and a fresh sampling pass before evaluating consistency gains. The repair routines choose `cache_mode="repeatable_attempt"`, which nests a repeatable cache on top of the shared independent stream so every attempt receives a fresh completion while repeated reads within an attempt stay deterministic.
 
-These layers compose naturally as `Persistent → Independent → Repeatable`, giving you deterministic behaviour within a single attempt, independence across retries, and full reproducibility between runs.【F:model.py†L55-L148】
+These layers compose naturally as `Persistent → Independent → Repeatable`, giving you deterministic behaviour within a single attempt, independence across retries, and full reproducibility between runs.
 
 ## Operational checklist
 
 * Decide on a cache directory and expose it through a CLI flag or environment variable.
 * On evaluator construction, detect that flag and build the Mnimi provider stack (`Persistent`, optionally nested with `Independent` / `Repeatable`) instead of the default `Model`.
-* For debugging or strict replication, enable Mnimi's `replication=True` mode so cache misses raise `ReplicationCacheMiss`, guaranteeing the run never falls back to live queries.
+
 
 Following this checklist ensures SpecFix remains statistically sound—fresh generations appear where the algorithm depends on them—while you capture the reproducibility and cost savings that Mnimi provides.
